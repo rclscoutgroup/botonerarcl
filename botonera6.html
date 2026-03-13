@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botonera Scouting Pro V6</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --primary: #00e676;
+            --primary-hover: #00c853;
+            --danger: #ff5252;
+            --danger-hover: #ff1744;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --pitch-bg: #2e7d32;
+            --pitch-line: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        header h1 { color: var(--primary); letter-spacing: 1px; }
+
+        .dashboard { display: flex; gap: 20px; flex: 1; min-height: 0; }
+
+        /* Panel Lateral lineal */
+        .sidebar {
+            background-color: var(--panel-bg);
+            border-radius: 12px;
+            padding: 20px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        h3 { margin-bottom: 12px; color: var(--text-muted); text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+
+        /* Inputs Contexto */
+        .context-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 8px 15px;
+            transition: border-color 0.2s;
+        }
+        
+        .input-group:focus-within { border-color: var(--primary); }
+        .input-group label { font-size: 12px; color: var(--text-muted); font-weight: bold; }
+        
+        .context-container input {
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: right;
+            font-size: 16px;
+            font-weight: bold;
+            width: 80px;
+        }
+        .context-container input:focus { outline: none; }
+
+        /* Resultado */
+        .outcome-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; }
+        .outcome-btn {
+            width: 100%; padding: 12px; background-color: #2c2c2c; color: white;
+            border: 2px solid #444; border-radius: 8px; cursor: pointer;
+            font-weight: bold; font-size: 14px; transition: all 0.2s;
+        }
+
+        .outcome-btn#btn-success.active {
+            background-color: rgba(0, 230, 118, 0.1); color: var(--primary);
+            border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+        }
+
+        .outcome-btn#btn-fail.active {
+            background-color: rgba(255, 82, 82, 0.1); color: var(--danger);
+            border-color: var(--danger); box-shadow: 0 0 10px rgba(255, 82, 82, 0.2);
+        }
+
+        /* Botones dinámicos */
+        .manage-buttons { display: flex; gap: 5px; margin-bottom: 20px; }
+        .manage-buttons input { flex: 1; background: #2c2c2c; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; }
+        .manage-buttons button { background: var(--text-light); color: black; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
+        .btn-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 20px; }
+        .btn-container { position: relative; display: flex; }
+
+        .action-btn {
+            flex: 1; background-color: #2c2c2c; border: 1px solid #444; color: white;
+            padding: 14px 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            font-size: 14px; font-weight: bold; text-align: left;
+        }
+
+        .action-btn:hover { background-color: #3d3d3d; }
+        .action-btn.active { background-color: #4a4a4a; color: white; border-color: white; border-left: 5px solid white; }
+
+        .delete-badge {
+            position: absolute; top: 50%; right: -5px; transform: translateY(-50%);
+            background-color: var(--danger); color: white;
+            width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; cursor: pointer; border: none;
+        }
+
+        .controls-bottom { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .clear-btn { background-color: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .export-btn { background-color: #2196f3; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
+
+        /* Área principal y Campo */
+        .main-area { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+        .pitch-wrapper {
+            background-color: var(--panel-bg); border-radius: 12px; padding: 30px; /* Aumentado para que quepan las porterías */
+            display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex: 2;
+        }
+
+        .pitch {
+            position: relative; width: 100%; max-width: 700px; aspect-ratio: 1.5 / 1;
+            background-color: var(--pitch-bg); border: 2px solid var(--pitch-line);
+            cursor: crosshair; user-select: none;
+            /* Eliminado overflow: hidden para que las porterías puedan asomar */
+        }
+
+        .pitch::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px solid var(--pitch-line); transform: translateX(-50%); }
+        .center-circle { position: absolute; top: 50%; left: 50%; width: 20%; aspect-ratio: 1; border: 2px solid var(--pitch-line); border-radius: 50%; transform: translate(-50%, -50%); }
+        
+        .penalty-area { position: absolute; top: 20%; bottom: 20%; width: 16%; border: 2px solid var(--pitch-line); }
+        .penalty-area.left { left: 0; border-left: none; }
+        .penalty-area.right { right: 0; border-right: none; }
+        
+        .goal-area { position: absolute; top: 35%; bottom: 35%; width: 5%; border: 2px solid var(--pitch-line); }
+        .goal-area.left { left: 0; border-left: none; }
+        .goal-area.right { right: 0; border-right: none; }
+
+        /* PORTERÍAS NUEVAS */
+        .goal {
+            position: absolute;
+            top: 43%; bottom: 43%;
+            width: 15px;
+            border: 2px solid var(--pitch-line);
+            /* Efecto de red */
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.2) 2px, rgba(255,255,255,0.2) 4px);
+        }
+        .goal.left { left: -15px; border-right: none; }
+        .goal.right { right: -15px; border-left: none; }
+
+        #svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+
+        /* Tabla de registros */
+        .log-wrapper { background-color: var(--panel-bg); border-radius: 12px; padding: 20px; flex: 1; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
+        th, td { padding: 10px; border-bottom: 1px solid #333; }
+        th { color: var(--primary); position: sticky; top: 0; background: var(--panel-bg); text-align: center; }
+        td.text-left { text-align: left; }
+        .del-row-btn { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        
+        .badge-success { background-color: rgba(0, 230, 118, 0.2); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px;}
+        .badge-fail { background-color: rgba(255, 82, 82, 0.2); color: var(--danger); padding: 3px 8px; border-radius: 12px; font-weight: bold; font-size: 11px;}
+
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>SCOUTING PRO V6</h1>
+        <p id="status-text" style="color: var(--text-muted); font-size: 14px; font-weight: bold;">Esperando acción...</p>
+    </header>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            
+            <h3>Contexto</h3>
+            <div class="context-container">
+                <div class="input-group">
+                    <label>Minuto</label>
+                    <input type="number" id="input-minuto" placeholder="-">
+                </div>
+                <div class="input-group">
+                    <label>Dorsal</label>
+                    <input type="number" id="input-dorsal" placeholder="-">
+                </div>
+                <div class="input-group">
+                    <label>Receptor</label>
+                    <input type="number" id="input-receptor" placeholder="-">
+                </div>
+            </div>
+
+            <h3>Resultado</h3>
+            <div class="outcome-container">
+                <button id="btn-success" class="outcome-btn active" onclick="setOutcome('Exitoso')">✓ Exitoso</button>
+                <button id="btn-fail" class="outcome-btn" onclick="setOutcome('Fallado')">✗ Fallado</button>
+            </div>
+
+            <h3>Acción</h3>
+            <div class="btn-grid" id="button-container">
+                </div>
+
+            <h3>Añadir Nueva</h3>
+            <div class="manage-buttons">
+                <input type="text" id="new-action-input" placeholder="Ej: Conducción..." onkeypress="handleEnter(event)">
+                <button onclick="addNewAction()">+</button>
+            </div>
+            
+            <div class="controls-bottom">
+                <button class="clear-btn" onclick="clearAllData()">🗑️ Limpiar Todo</button>
+                <button class="export-btn" onclick="exportToExcel()">📊 Exportar a Excel</button>
+            </div>
+        </div>
+
+        <div class="main-area">
+            <div class="pitch-wrapper">
+                <div class="pitch" id="pitch">
+                    <div class="center-circle"></div>
+                    
+                    <div class="penalty-area left"></div>
+                    <div class="goal-area left"></div>
+                    <div class="goal left"></div>
+                    
+                    <div class="penalty-area right"></div>
+                    <div class="goal-area right"></div>
+                    <div class="goal right"></div>
+                    
+                    <svg id="svg-layer">
+                        <defs>
+                            <marker id="arrowhead-success" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00e676" />
+                            </marker>
+                            <marker id="arrowhead-fail" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ff5252" />
+                            </marker>
+                        </defs>
+                        <g id="drawings"></g>
+                        <line id="temp-line" stroke-width="2" stroke-dasharray="4" visibility="hidden" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="log-wrapper">
+                <h3>Registro de Eventos</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº</th>
+                            <th>Min.</th>
+                            <th>Dorsal</th>
+                            <th>Receptor</th>
+                            <th class="text-left">Acción</th>
+                            <th>Resultado</th>
+                            <th>Inicio (X,Y)%</th>
+                            <th>Fin (X,Y)%</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ESTADO GLOBAL ---
+        let defaultActions = ['Pase', 'Tiro a Puerta', 'Centro', 'Regate', 'Duelo Aéreo', 'Recuperación'];
+        let actions = JSON.parse(localStorage.getItem('scoutingActionsV6')) || defaultActions;
+        let selectedAction = null;
+        let selectedOutcome = 'Exitoso';
+
+        // --- GESTIÓN DE RESULTADO ---
+        function setOutcome(outcome) {
+            selectedOutcome = outcome;
+            document.getElementById('btn-success').classList.toggle('active', outcome === 'Exitoso');
+            document.getElementById('btn-fail').classList.toggle('active', outcome === 'Fallado');
+            updateStatusText();
+        }
+
+        // --- GESTIÓN DE BOTONES DE ACCIÓN ---
+        function renderButtons() {
+            const container = document.getElementById('button-container');
+            container.innerHTML = '';
+            
+            actions.forEach((accion, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'btn-container';
+                
+                const btn = document.createElement('button');
+                btn.className = 'action-btn';
+                if (accion === selectedAction) btn.classList.add('active');
+                btn.textContent = accion;
+                btn.onclick = () => selectAction(btn, accion);
+                
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-badge';
+                delBtn.textContent = '×';
+                delBtn.onclick = (e) => { e.stopPropagation(); deleteAction(index); };
+
+                wrapper.appendChild(btn);
+                wrapper.appendChild(delBtn);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function addNewAction() {
+            const input = document.getElementById('new-action-input');
+            const val = input.value.trim();
+            if (val && !actions.includes(val)) {
+                actions.push(val);
+                saveAndRenderButtons();
+                input.value = '';
+            }
+        }
+
+        function handleEnter(e) { if (e.key === 'Enter') addNewAction(); }
+
+        function deleteAction(index) {
+            if (selectedAction === actions[index]) selectedAction = null;
+            actions.splice(index, 1);
+            saveAndRenderButtons();
+            updateStatusText();
+        }
+
+        function saveAndRenderButtons() {
+            localStorage.setItem('scoutingActionsV6', JSON.stringify(actions));
+            renderButtons();
+        }
+
+        function selectAction(clickedBtn, accion) {
+            selectedAction = accion;
+            renderButtons(); 
+            updateStatusText();
+        }
+
+        function updateStatusText() {
+            const statusEl = document.getElementById('status-text');
+            if (!selectedAction) {
+                statusEl.textContent = "Esperando acción...";
+                statusEl.style.color = "var(--text-muted)";
+            } else {
+                statusEl.textContent = `Dibujando: ${selectedAction} (${selectedOutcome})`;
+                statusEl.style.color = selectedOutcome === 'Exitoso' ? "var(--primary)" : "var(--danger)";
+            }
+        }
+
+        // --- SISTEMA DE DIBUJO ---
+        let eventsData = [];
+        let eventCounter = 1;
+        
+        const pitch = document.getElementById('pitch');
+        const drawings = document.getElementById('drawings');
+        const tempLine = document.getElementById('temp-line');
+        
+        let isDragging = false;
+        let startCoords = null;
+
+        function getCoordsPercent(e) {
+            const rect = pitch.getBoundingClientRect();
+            // Restringimos para que los valores nunca pasen de 0% o 100% incluso si hace clic en la portería (fuera del rect principal)
+            let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+            return { x: ((x / rect.width) * 100).toFixed(1), y: ((y / rect.height) * 100).toFixed(1) };
+        }
+
+        pitch.addEventListener('mousedown', (e) => {
+            if (!selectedAction) return alert("Selecciona una acción primero.");
+            isDragging = true;
+            startCoords = getCoordsPercent(e);
+            
+            const color = selectedOutcome === 'Exitoso' ? 'var(--primary)' : 'var(--danger)';
+            const marker = selectedOutcome === 'Exitoso' ? 'url(#arrowhead-success)' : 'url(#arrowhead-fail)';
+            
+            tempLine.setAttribute('stroke', color);
+            tempLine.setAttribute('marker-end', marker);
+            tempLine.setAttribute('x1', `${startCoords.x}%`);
+            tempLine.setAttribute('y1', `${startCoords.y}%`);
+            tempLine.setAttribute('x2', `${startCoords.x}%`);
+            tempLine.setAttribute('y2', `${startCoords.y}%`);
+            tempLine.setAttribute('visibility', 'visible');
+        });
+
+        pitch.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const currentCoords = getCoordsPercent(e);
+            tempLine.setAttribute('x2', `${currentCoords.x}%`);
+            tempLine.setAttribute('y2', `${currentCoords.y}%`);
+        });
+
+        pitch.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            tempLine.setAttribute('visibility', 'hidden');
+            registrarEvento(startCoords, getCoordsPercent(e));
+        });
+
+        pitch.addEventListener('mouseleave', () => {
+            if (isDragging) { isDragging = false; tempLine.setAttribute('visibility', 'hidden'); }
+        });
+
+        function registrarEvento(start, end) {
+            const minInput = document.getElementById('input-minuto').value;
+            const dorsalInput = document.getElementById('input-dorsal').value;
+            const receptorInput = document.getElementById('input-receptor').value;
+
+            eventsData.push({
+                id: eventCounter++,
+                minuto: minInput ? minInput + "'" : "-",
+                dorsal: dorsalInput || "-",
+                receptor: receptorInput || "-",
+                action: selectedAction,
+                outcome: selectedOutcome,
+                x1: start.x, y1: start.y,
+                x2: end.x, y2: end.y
+            });
+            
+            renderDrawings();
+            renderTable();
+
+            selectedAction = null;
+            renderButtons();
+            updateStatusText();
+        }
+
+        // --- RENDERIZADO ---
+        function renderDrawings() {
+            drawings.innerHTML = ''; 
+            eventsData.forEach(evt => {
+                const color = evt.outcome === 'Exitoso' ? 'var(--primary)' : 'var(--danger)';
+                
+                if (evt.x1 === evt.x2 && evt.y1 === evt.y2) {
+                    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                    circle.setAttribute("cx", `${evt.x1}%`); circle.setAttribute("cy", `${evt.y1}%`);
+                    circle.setAttribute("r", "5"); circle.setAttribute("fill", color);
+                    drawings.appendChild(circle);
+                } else {
+                    const marker = evt.outcome === 'Exitoso' ? 'url(#arrowhead-success)' : 'url(#arrowhead-fail)';
+                    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                    line.setAttribute("x1", `${evt.x1}%`); line.setAttribute("y1", `${evt.y1}%`);
+                    line.setAttribute("x2", `${evt.x2}%`); line.setAttribute("y2", `${evt.y2}%`);
+                    line.setAttribute("stroke", color); line.setAttribute("stroke-width", "2");
+                    line.setAttribute("marker-end", marker);
+                    drawings.appendChild(line);
+                }
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('log-body');
+            tbody.innerHTML = '';
+            
+            [...eventsData].reverse().forEach(evt => {
+                const badgeClass = evt.outcome === 'Exitoso' ? 'badge-success' : 'badge-fail';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${evt.id}</td>
+                    <td><strong>${evt.minuto}</strong></td>
+                    <td>${evt.dorsal}</td>
+                    <td>${evt.receptor}</td>
+                    <td class="text-left"><strong>${evt.action}</strong></td>
+                    <td><span class="${badgeClass}">${evt.outcome}</span></td>
+                    <td>${evt.x1}, ${evt.y1}</td>
+                    <td>${evt.x2}, ${evt.y2}</td>
+                    <td><button class="del-row-btn" onclick="deleteEvent(${evt.id})">Borrar</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteEvent(id) {
+            eventsData = eventsData.filter(e => e.id !== id);
+            renderDrawings(); renderTable();
+        }
+
+        function clearAllData() {
+            if (confirm("¿Estás seguro de que deseas borrar todas las acciones?")) {
+                eventsData = []; eventCounter = 1;
+                renderDrawings(); renderTable();
+            }
+        }
+
+        // --- EXPORTACIÓN ---
+        function exportToExcel() {
+            if (eventsData.length === 0) return alert("No hay datos para exportar.");
+
+            const headers = ['ID', 'Minuto', 'Dorsal', 'Receptor', 'Accion', 'Resultado', 'Inicio X (%)', 'Inicio Y (%)', 'Fin X (%)', 'Fin Y (%)'];
+            let csvContent = headers.join(',') + '\n';
+
+            eventsData.forEach(e => {
+                const row = [
+                    e.id, 
+                    e.minuto.replace("'", ""),
+                    e.dorsal, 
+                    e.receptor, 
+                    `"${e.action}"`, 
+                    `"${e.outcome}"`, 
+                    e.x1, e.y1, e.x2, e.y2
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `scouting_partido_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Inicializar
+        renderButtons();
+    </script>
+</body>
+</html>
