@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Botonera Scouting Pro V6</title>
+    <title>RCL Botonera</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -145,7 +145,7 @@
         .main-area { flex: 1; display: flex; flex-direction: column; gap: 20px; }
 
         .pitch-wrapper {
-            background-color: var(--panel-bg); border-radius: 12px; padding: 30px; /* Aumentado para que quepan las porterías */
+            background-color: var(--panel-bg); border-radius: 12px; padding: 30px;
             display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.3); flex: 2;
         }
 
@@ -153,7 +153,6 @@
             position: relative; width: 100%; max-width: 700px; aspect-ratio: 1.5 / 1;
             background-color: var(--pitch-bg); border: 2px solid var(--pitch-line);
             cursor: crosshair; user-select: none;
-            /* Eliminado overflow: hidden para que las porterías puedan asomar */
         }
 
         .pitch::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; border-left: 2px solid var(--pitch-line); transform: translateX(-50%); }
@@ -200,7 +199,10 @@
 <body>
 
     <header>
-        <h1>SCOUTING PRO V6</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="https://i.postimg.cc/fLBwmYrV/RCL-Scout-Logo2.png" alt="RCL Scout" style="height: 45px;">
+            <h1>BOTONERA RCL</h1>
+        </div>
         <p id="status-text" style="color: var(--text-muted); font-size: 14px; font-weight: bold;">Esperando acción...</p>
     </header>
 
